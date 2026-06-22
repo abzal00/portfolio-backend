@@ -24,8 +24,13 @@ app.get("/" , (req, res)=>{
 //     return res.json(parse.notes)
 // })
 app.get("/api/notes", async (req,res)=>{
-    const result = await pool.query('SELECT * FROM notes');
-    return res.json(result.rows);
+    try{
+        const result = await pool.query('SELECT * FROM notes');
+        return res.json(result.rows);
+    } catch(error){
+        console.log(error);
+        res.status(500).json({error: "error get notes"})
+    }
 })
 
 // app.post("/api/notes", (req,res)=> {
@@ -40,11 +45,16 @@ app.get("/api/notes", async (req,res)=>{
 // })
 
 app.post("/api/notes", async(req,res)=>{
+    try{
     const {title, content} = req.body
     const result = await pool.query('INSERT INTO notes (title, content) VALUES ($1, $2) RETURNING *',
         [title, content]
     );
     return res.status(201).json(result.rows[0])
+} catch(error){
+    console.error(error);
+    res.status(500).json({error: "error post notes"})
+}
 })
 
 // app.delete("/api/notes/:id", (req,res)=>{
@@ -59,11 +69,31 @@ app.post("/api/notes", async(req,res)=>{
 // })
 
 app.delete("/api/notes/:id", async(req, res)=> {
+    try{
     const id = req.params.id;
     const result =  await pool.query('DELETE FROM notes WHERE id = $1',
         [id]
     )
     return res.status(200).json( {message: "deleted "})
+} catch(error){
+    console.error(error);
+    res.status(500).json({error: "error deleted"})
+}
+})
+
+app.put("/api/notes/:id", async(req,res)=>{
+    try {
+        const id = req.params.id;
+        const {title, content} = req.body;
+        const result = await pool.query(
+        'UPDATE notes SET title = $1, content = $2 WHERE id = $3 RETURNING *',
+        [title, content, id]
+        )
+        res.status(200).json(result.rows)
+    } catch(error){
+        console.error(error);
+        res.status(500).json({error: "error put "})
+    }
 })
 app.listen(port, ()=>{
     console.log("server started ")
