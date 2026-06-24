@@ -47,6 +47,9 @@ app.get("/api/notes", async (req,res)=>{
 app.post("/api/notes", async(req,res)=>{
     try{
     const {title, content} = req.body
+    if(!title || !content){
+        return res.status(400).json({error: "POST title or contnet undefined or null"})
+    }
     const result = await pool.query('INSERT INTO notes (title, content) VALUES ($1, $2) RETURNING *',
         [title, content]
     );
@@ -85,6 +88,9 @@ app.put("/api/notes/:id", async(req,res)=>{
     try {
         const id = req.params.id;
         const {title, content} = req.body;
+        if(!title || !content){
+            return res.status(400).json({error: "PUT title or contnet undefined or null"})
+        }
         const result = await pool.query(
         'UPDATE notes SET title = $1, content = $2 WHERE id = $3 RETURNING *',
         [title, content, id]
