@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs')
 const {Pool} = require('pg');
 const app = express(); 
+const cors = require('cors');
+app.use(cors())
 require('dotenv').config()
 const port = 3003; 
 const pool = new Pool({
@@ -46,12 +48,12 @@ app.get("/api/notes", async (req,res)=>{
 
 app.post("/api/notes", async(req,res)=>{
     try{
-    const {title, content} = req.body
-    if(!title || !content){
+    const {title, description, time } = req.body
+    if(!title || !description){
         return res.status(400).json({error: "POST title or contnet undefined or null"})
     }
-    const result = await pool.query('INSERT INTO notes (title, content) VALUES ($1, $2) RETURNING *',
-        [title, content]
+    const result = await pool.query('INSERT INTO notes (title, description, time) VALUES ($1, $2, $3) RETURNING *',
+        [title, description, time]
     );
     return res.status(201).json(result.rows[0])
 } catch(error){
@@ -95,7 +97,7 @@ app.put("/api/notes/:id", async(req,res)=>{
         'UPDATE notes SET title = $1, content = $2 WHERE id = $3 RETURNING *',
         [title, content, id]
         )
-        res.status(200).json(result.rows)
+        res.status(200).json(result.rows[0])
     } catch(error){
         console.error(error);
         res.status(500).json({error: "error put "})
